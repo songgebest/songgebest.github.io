@@ -1,13 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>松哥个人主页</title>
+    <title></title>
+    <style type="text/css">
+        * {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            border: 0;
+        }
+
+        .all {
+            width: 500px;
+            height: 200px;
+            padding: 7px;
+            border: 1px solid #ccc;
+            margin: 100px auto;
+            position: relative;
+        }
+
+        .screen {
+            width: 500px;
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screen li {
+            width: 500px;
+            height: 200px;
+            overflow: hidden;
+            float: left;
+        }
+
+        .screen ul {
+            position: absolute;
+            left: 0;
+            top: 0px;
+            width: 3000px;
+        }
+
+        .all ol {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .all ol li {
+            float: left;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .all ol li.current {
+            background: yellow;
+        }
+
+        #arr {
+            display: none;
+        }
+
+        #arr span {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            margin-top: -20px;
+            background: #000;
+            cursor: pointer;
+            line-height: 40px;
+            text-align: center;
+            font-weight: bold;
+            font-family: '黑体';
+            font-size: 30px;
+            color: #fff;
+            opacity: 0.3;
+            border: 1px solid #fff;
+        }
+
+        #arr #right {
+            right: 5px;
+            left: auto;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="img">我是松哥
-        <img src="./666.png" alt="">
+    <div class="all" id='box'>
+        <div class="screen">
+            <ul>
+                <li><img src="images/01.jpg" width="500" height="200" /></li>
+                <li><img src="images/02.jpg" width="500" height="200" /></li>
+                <li><img src="images/03.jpg" width="500" height="200" /></li>
+                <li><img src="images/04.jpg" width="500" height="200" /></li>
+                <li><img src="images/05.jpg" width="500" height="200" /></li>
+            </ul>
+            <ol>
+                <li class="current">1</li>
+                <li>2</li>
+                <li>3</li>
+                <li>4</li>
+                <li>5</li>
+            </ol>
+        </div>
+        <div id="arr">
+            <span id="left">&lt;</span>
+            <span id="right">&gt;</span>
+        </div>
     </div>
 </body>
+
+<script src="./animation.js"></script>
+
+<script>
+    /*
+    1.分析需求(交互)：
+        1.鼠标移入显示翻页按钮,停止轮播
+            1.1点击下一页,动画到下一页
+            1.2点击上一页,动画到上一页
+            1.3点击页码.动画到对应的图片
+        2.鼠标移出隐藏翻页按钮,继续轮播
+        3,完成无限轮播
+    2.思路分析（事件三要素）
+        获取元素：事件源：
+        注册事件：事件类型
+        事件处理：
+    */
+    //时间处理,获取元素
+    var box = document.querySelector('#box');
+    var screen = document.querySelector('.screen');
+    var ul = document.querySelector('ul');
+    var ol = document.querySelector('ol');
+    var arr = document.querySelector('#arr');
+    var left = document.querySelector('#left');
+    var right = document.querySelector('#right');
+    var index = 0;
+    //无限轮播
+    var timeId = setInterval(function () {
+        nextPage();
+    }, 2000)
+    //1.鼠标移入显示翻页按钮,停止轮播
+    box.onmouseover = function () {
+        arr.style.display = 'block';
+        clearInterval(timeId)
+    }
+
+    //增加一个图片,视觉欺骗
+    ul.appendChild(ul.children[0].cloneNode(true))
+    //1.1点击下一页,动画到下一页
+    right.onclick = function () {
+        nextPage()
+    }
+    function nextPage() {
+        if (index == ul.children.length - 1) {
+            ul.style.left = 0 + 'px';
+            index = 0;
+        }
+        index++;
+        animationMove(ul, -index * screen.offsetWidth);
+        //怕他思想修改样式
+        for (var i = 0; i < ol.children.length; i++) {
+            if (index == i) {
+                ol.children[i].className = 'current'
+            } else {
+                ol.children[i].className = ''
+            }
+        }
+        //最后一张时候修改样式
+        if (index == ul.children.length - 1) {
+            ol.children[0].className = 'current'
+        }
+    }
+    //1.2点击上一页,动画到上一页
+    left.onclick = function () {
+        if (index == 0) {
+            index = ul.children.length - 1;
+            ul.style.left = -(screen.offsetWidth * index) + 'px';
+        }
+        index--;
+        animationMove(ul, -index * screen.offsetWidth);
+        //怕他思想修改样式
+        for (var i = 0; i < ol.children.length; i++) {
+            if (index == i) {
+                ol.children[i].className = 'current'
+            } else {
+                ol.children[i].className = ''
+            }
+        }
+    }
+    //1.3点击页码.动画到对应的图片
+    for (var i = 0; i < ol.children.length; i++) {
+        ol.children[i].setAttribute('yemaindex', i)
+        ol.children[i].onclick = function () {
+            var yemaindex = this.getAttribute('yemaindex')
+            index = yemaindex;
+            //开始滚动,避免反向滚动
+            if (ul.offsetLeft == -(ul.children.length - 1) * screen.offsetWidth) {
+                ul.style.left = 0 + 'px';
+            }
+            animationMove(ul, -index * screen.offsetWidth);
+            //怕他思想修改样式
+            for (var j = 0; j < ol.children.length; j++) {
+                if (ol.children[j] == this) {
+                    ol.children[j].className = 'current'
+                } else {
+                    ol.children[j].className = ''
+                }
+            }
+        }
+    }
+    //2.鼠标移出隐藏翻页按钮,继续轮播
+    box.onmouseout = function () {
+        arr.style.display = 'none';
+        timeId = setInterval(function () {
+            nextPage();
+        }, 2000)
+    }
+</script>
+</body>
+
 </html>
